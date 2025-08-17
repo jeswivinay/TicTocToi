@@ -50,8 +50,8 @@ def evaluate(board):
         return -1
     return 0
 
-# Minimax function
-def minimax(board, depth, is_max):
+# Minimax function with alpha-beta pruning for efficiency
+def minimax(board, depth, is_max, alpha, beta):
     if check_winner(board) or is_full(board):
         return evaluate(board)
     
@@ -61,9 +61,12 @@ def minimax(board, depth, is_max):
             for j in range(3):
                 if board[i][j] == " ":
                     board[i][j] = "O"
-                    eval = minimax(board, depth + 1, False)
+                    eval = minimax(board, depth + 1, False, alpha, beta)
                     board[i][j] = " "
                     max_eval = max(max_eval, eval)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
         return max_eval
     else:  # Human 'X' minimizing
         min_eval = float('inf')
@@ -71,15 +74,18 @@ def minimax(board, depth, is_max):
             for j in range(3):
                 if board[i][j] == " ":
                     board[i][j] = "X"
-                    eval = minimax(board, depth + 1, True)
+                    eval = minimax(board, depth + 1, True, alpha, beta)
                     board[i][j] = " "
                     min_eval = min(min_eval, eval)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
         return min_eval
 
-# AI move using minimax
+# AI move using minimax with alpha-beta
 def ai_move(board):
     """
-    Selects the best move for the AI using minimax.
+    Selects the best move for the AI using minimax with alpha-beta pruning.
     
     Args:
         board (list of lists): 3x3 game board.
@@ -89,11 +95,13 @@ def ai_move(board):
     """
     best_score = -float('inf')
     best_move = None
+    alpha = -float('inf')
+    beta = float('inf')
     for i in range(3):
         for j in range(3):
             if board[i][j] == " ":
                 board[i][j] = "O"
-                score = minimax(board, 0, False)
+                score = minimax(board, 0, False, alpha, beta)
                 board[i][j] = " "
                 if score > best_score:
                     best_score = score
@@ -112,7 +120,7 @@ if 'winner' not in st.session_state:
 
 # Streamlit app title
 st.title("Interactive Tic-Tac-Toe Game")
-st.subheader("Human (X) vs. AI (O) - Unbeatable AI")
+st.subheader("Human (X) vs. AI (O) - Unbeatable AI that Tries to Win")
 
 # Display the game board
 for i in range(3):
